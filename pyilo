@@ -1,0 +1,47 @@
+import argparse
+import paramiko
+
+class remote_tool():
+    def __init__(self):
+        parse = argparse.ArgumentParser(prog='ilo remote management',description='Used to remote manage ilo ')
+        parse.add_argument('-H','--host', action='store',default="hp.com",dest="host_ip",help=u"host ip address or FQDN")
+        parse.add_argument('-u','--user',action='store',default='Administrator',dest='user',help=u'The username used to login ilo')
+        parse.add_argument('-p','--passwd',action='store',default='password',dest='passwd'	,help=u'The password used to login ilo')
+        parse.add_argument('-c','--command',action='store',default='show -l all /map1/fireware1',choices = ('getversion,restart_server,reset_ilo'),dest='command'	,help=u'The commands')
+        args = parse.parse_args(args.command)
+        self.__host = args.host
+        self.__user = args.user
+        self.__passwd = args.passwd
+        self.__command=args.command
+
+        if not hasattr(self,args.command):
+            print 'Unrecognized command'
+            parser.print_help()
+            exit(1)
+        getattr(self,args.cmmand)()
+
+    def getversion(self):
+        self.remote_command(hostname=self.__host,username=self.__user,password=self.__passwd,command='show -l  all   /map1/firewall1')
+
+    def restart_server(self):
+        self.remote_command(hostname=self.__host,username=self.__user,password=self.__passwd,command='reset /syatem1')
+
+    def reset_ilo(self):
+        self.remote_command(hostname=self.__host,username=self.__user,password=self.__passwd,command='reset /map1')
+
+    def remote_command(self,hostname,username,port=22,password,command):
+        try:
+            s = paramiko.SSHClient()
+            s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            stdin,stdout,sterr=s.exec_command('%s ' % (command))
+            print stdout.read()
+            print "%s The %s was successfully runned " % (command,hostname)
+            s.close()
+        except paramiko.AuthenticationException:
+            print "\033[43;1m%s The original password error!!!\033[0m" % hostname
+        except :
+            print "\033[41;1m%s The invalid host error!!!\033[0m]" % hostname
+
+
+if __name__ == '__main__':
+	remote = remote_tool()
